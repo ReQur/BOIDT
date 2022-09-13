@@ -14,6 +14,9 @@ from .convert_operations import text_to_int, int_to_text
 BASE = 16
 BASE_WITH_CONTROL = BASE + int(sqrt(BASE) + 1)
 POWERS_OF_TWO = [2 ** x for x in range(int(sqrt(BASE) + 1))]  # 1, 2, 4, ..., BASE
+# BASE = 11
+# BASE_WITH_CONTROL = 15
+# POWERS_OF_TWO = [1, 2, 4, 8]
 
 
 def encode(data: str) -> [int]:
@@ -26,8 +29,21 @@ def encode(data: str) -> [int]:
 
 
 def decode(bits_array: [int]) -> str:
-    cleared_bits = [clear_control_bits(bits) for bits in bits_array]
-    return int_to_text(concatenate_bytes_with_base(cleared_bits, BASE))
+    return int_to_text(
+        concatenate_bytes_with_base(
+            [
+                clear_control_bits(recover_corrupted_bit(obits, rbits))
+                for (obits, rbits) in zip(
+                    bits_array,
+                    [
+                        control_bits_calculation(prepare_check_bits(cbits))
+                        for cbits in [clear_control_bits(bits) for bits in bits_array]
+                    ],
+                )
+            ],
+            BASE,
+        )
+    )
 
 
 def prepare_check_bits(bits: int) -> int:
@@ -44,7 +60,9 @@ def prepare_check_bits(bits: int) -> int:
 
 
 def control_bits_calculation(bits: int) -> int:
-    def len(x: int) -> int: return x.bit_length()
+    def len(x: int) -> int:
+        return x.bit_length()
+
     masks = [create_mask(x, BASE_WITH_CONTROL) for x in POWERS_OF_TWO]
     discarded_zeros = BASE_WITH_CONTROL - len(bits)
     _discarded_zeros = 0
@@ -52,12 +70,9 @@ def control_bits_calculation(bits: int) -> int:
         control_value = (
             count_ones(
                 crop_left_bits(bits, pos - 1 - _discarded_zeros)
-                & mask
-                >> (
-                    len(mask)
-                    - (len(bits) - (pos - 1 - _discarded_zeros))
-                )
-            ) % 2
+                & mask >> (len(mask) - (len(bits) - (pos - 1 - _discarded_zeros)))
+            )
+            % 2
         )
         # skip insertion if the control value is 0
         if not control_value:
@@ -80,5 +95,28 @@ def control_bits_calculation(bits: int) -> int:
 def clear_control_bits(bits: int):
     diff = BASE_WITH_CONTROL - bits.bit_length()
     for pos in POWERS_OF_TWO:
-        diff += bits.bit_length() - (bits := remove_bit(bits, pos - diff)).bit_length()
+        diff += bits.bit_length() - (
+            bits := remove_bit(bits, pos - diff)
+        ).bit_length()
     return bits
+
+
+def recover_corrupted_bit(origin_bits: int, recalculated_bits: int) -> int:
+    if origin_bits == recalculated_bits:
+        return origin_bits
+    control_bits_mask = 0
+    for x in range(BASE_WITH_CONTROL + 1):
+        control_bits_mask = (control_bits_mask << 1) + (x in POWERS_OF_TWO)
+    diff = (origin_bits & control_bits_mask) ^ (recalculated_bits & control_bits_mask)
+    corrupted_bit = 0
+    while diff:
+        corrupted_bit += BASE_WITH_CONTROL - diff.bit_length() + 1
+        diff = crop_left_bits(diff, 1)
+    if origin_bits & (1 << diff):
+        origin_bits = origin_bits & (
+            (1 << (BASE_WITH_CONTROL - corrupted_bit))
+            ^ ((1 << origin_bits.bit_length() + 1) - 1)
+        )
+    else:
+        origin_bits = origin_bits | (1 << (BASE_WITH_CONTROL - corrupted_bit))
+    return origin_bits

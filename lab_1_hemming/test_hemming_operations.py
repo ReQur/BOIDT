@@ -42,3 +42,23 @@ def test_decode_encode_without_corruption():
     decoded_word = hemming.encode(word)
     encoded_word = hemming.decode(decoded_word)
     assert word == encoded_word
+
+
+@pytest.mark.parametrize(
+    "corruption", [(lambda x: x | 0b100), (lambda x: x & 0b111111111111111111110)]
+)
+def test_recover_bit(corruption):
+    origin_bits = 0b110001001101001
+    origin_bits_control = hemming.control_bits_calculation(
+        hemming.prepare_check_bits(0b110001001101001)
+    )
+    corrupted_bits = corruption(origin_bits_control)
+    recalc_bits = hemming.control_bits_calculation(
+        hemming.prepare_check_bits(hemming.clear_control_bits(corrupted_bits))
+    )
+    assert (
+        hemming.clear_control_bits(
+            hemming.recover_corrupted_bit(corrupted_bits, recalc_bits)
+        )
+        == origin_bits
+    )

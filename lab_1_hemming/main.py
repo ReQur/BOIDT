@@ -14,15 +14,15 @@ def main():
     # # changed = bo.insert(bin_hello, 0)
     # # print(bin(changed))
     #
-    split_bin_hello = bo.split_bytes_by(bin_hello, 16)
-    # print([bin(x) for x in split_bin_hello])
-    # conacat_bin_hello = bo.concatenate_bytes_with_base(split_bin_hello, 16)
-    # print(co.int_to_text(conacat_bin_hello))
-    prepared = ho.prepare_check_bits(split_bin_hello[0])
-    # print(bin(int.from_bytes("bi".encode("ASCII"), "big")))
-    print(bin(split_bin_hello[0]))
-    result = ho.control_bits_calculation(prepared)
-    print(bin(result))
+    # split_bin_hello = bo.split_bytes_by(bin_hello, 16)
+    # # print([bin(x) for x in split_bin_hello])
+    # # conacat_bin_hello = bo.concatenate_bytes_with_base(split_bin_hello, 16)
+    # # print(co.int_to_text(conacat_bin_hello))
+    # prepared = ho.prepare_check_bits(split_bin_hello[0])
+    # # print(bin(int.from_bytes("bi".encode("ASCII"), "big")))
+    # print(bin(split_bin_hello[0]))
+    # result = ho.control_bits_calculation(prepared)
+    # print(bin(result))
     # print([bin(x) for x in ho.encode("binary")])
     # print(bo.count_ones(7))
     # print(bo.remove_bit(65, 5))
@@ -33,6 +33,13 @@ def main():
     # tmp = ho.clear_control_bits(tmp)
     # tmp = co.int_to_text(tmp)
     # print(tmp)
+    print(
+        bin(
+            ho.control_bits_calculation(
+                ho.prepare_check_bits(ho.clear_control_bits(0b110111011110010100001))
+            )
+        )
+    )
 
 
 # Press the green button in the gutter to run the script.
