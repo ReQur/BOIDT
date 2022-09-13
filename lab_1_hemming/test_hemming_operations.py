@@ -43,6 +43,23 @@ def test_decode_encode_without_corruption():
     encoded_word = hemming.decode(decoded_word)
     assert word == encoded_word
 
+@pytest.mark.parametrize(
+    "corruption", [
+        (lambda x: [x[0] | 0b100, x[1], x[2]]),
+        (lambda x: [x[0], x[1] & 0b111111111111111111110, x[2]]),
+        (lambda x: [x[0], x[1], x[2] & 0b111111111111011111111]),
+        (lambda x: [x[0], x[1] | 0b100000000, x[2]]),
+        (lambda x: [x[0] & 0b111011111111111111111, x[1], x[2]]),
+    ]
+)
+def test_decode_encode_with_corruption(corruption):
+    word = "binary"
+    encoded_word = hemming.encode(word)
+    corrupted = corruption(encoded_word)
+    decoded_word = hemming.decode(corrupted)
+    assert word == decoded_word
+
+
 
 @pytest.mark.parametrize(
     "corruption", [(lambda x: x | 0b100), (lambda x: x & 0b111111111111111111110)]
