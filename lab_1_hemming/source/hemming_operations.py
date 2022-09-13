@@ -114,7 +114,6 @@ class HemmingAlgorithm:
                 # we need to place zeros after control bite
                 # also shift to the len of bits for concatenation
                 control_value = control_value << discarded_zeros - pos + len(bits)
-                bits = control_value | bits
                 discarded_zeros = 0
                 _discarded_zeros = pos - 1
             else:
@@ -122,7 +121,7 @@ class HemmingAlgorithm:
                 control_value = (
                         control_value << (self.TOTAL_PIECE_LENGTH - (pos - 1)) - 1
                 )
-                bits = bits | control_value
+            bits |= control_value
         return bits
 
     def clear_control_bits(self, bits: int) -> int:
@@ -159,12 +158,12 @@ class HemmingAlgorithm:
             corrupted_bit += self.TOTAL_PIECE_LENGTH - diff.bit_length() + 1
             diff = crop_left_bits(diff, 1)
         if origin_bits & (1 << diff):
-            origin_bits = origin_bits & (
+            origin_bits &= (
                 (1 << (self.TOTAL_PIECE_LENGTH - corrupted_bit))
                 ^ ((1 << origin_bits.bit_length() + 1) - 1)
             )
         else:
-            origin_bits = origin_bits | (
+            origin_bits |= (
                 1 << (self.TOTAL_PIECE_LENGTH - corrupted_bit)
             )
         return origin_bits
