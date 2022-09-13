@@ -2,7 +2,7 @@ import pytest
 from source.hemming_operations import HemmingAlgorithm
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def hemming():
     return HemmingAlgorithm(16, 5)
 
@@ -50,13 +50,14 @@ def test_decode_encode_without_corruption(hemming):
 
 
 @pytest.mark.parametrize(
-    "corruption", [
+    "corruption",
+    [
         (lambda x: [x[0] | 0b100, x[1], x[2]]),
         (lambda x: [x[0], x[1] & 0b111111111111111111110, x[2]]),
         (lambda x: [x[0], x[1], x[2] & 0b111111111111011111111]),
         (lambda x: [x[0], x[1] | 0b100000000, x[2]]),
         (lambda x: [x[0] & 0b111011111111111111111, x[1], x[2]]),
-    ]
+    ],
 )
 def test_decode_encode_with_corruption(hemming, corruption):
     word = "binary"
@@ -67,8 +68,7 @@ def test_decode_encode_with_corruption(hemming, corruption):
 
 
 @pytest.mark.parametrize(
-    "corruption",
-    [(lambda x: x | 0b100), (lambda x: x & 0b111111111111111111110)]
+    "corruption", [(lambda x: x | 0b100), (lambda x: x & 0b111111111111111111110)]
 )
 def test_recover_bit(hemming, corruption):
     origin_bits = 0b110001001101001
@@ -80,8 +80,8 @@ def test_recover_bit(hemming, corruption):
         hemming.prepare_check_bits(hemming.clear_control_bits(corrupted_bits))
     )
     assert (
-            hemming.clear_control_bits(
-                hemming.recover_corrupted_bit(corrupted_bits, recalc_bits)
-            )
-            == origin_bits
+        hemming.clear_control_bits(
+            hemming.recover_corrupted_bit(corrupted_bits, recalc_bits)
+        )
+        == origin_bits
     )
