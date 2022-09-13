@@ -7,7 +7,7 @@ from .bit_operations import (
     remove_bit,
     concatenate_bytes_with_base,
 )
-from .convert_operations import text_to_int, int_to_text
+from .convert_operations import StringIntConverter
 
 
 class HemmingAlgorithm:
@@ -23,6 +23,7 @@ class HemmingAlgorithm:
     TOTAL_PIECE_LENGTH: int
     POWERS_OF_TWO: [int]
     CONTROL_VALUES_MASKS: [int]
+    STRING_INT_CONVERTER: StringIntConverter
 
     def __init__(self, information_bit_count: int, control_bit_count: int) -> None:
         self.INFORMATION_BITS_COUNT = information_bit_count
@@ -30,6 +31,7 @@ class HemmingAlgorithm:
         self.POWERS_OF_TWO = [2 ** x for x in range(control_bit_count)]
         self.TOTAL_PIECE_LENGTH = information_bit_count + control_bit_count
         self.CONTROL_VALUES_MASKS = [create_mask(x, self.TOTAL_PIECE_LENGTH) for x in self.POWERS_OF_TWO]
+        self.STRING_INT_CONVERTER = StringIntConverter(encoding="ASCII", byte_orded="big")
 
     def encode(self, data: str) -> [int]:
         """
@@ -42,7 +44,7 @@ class HemmingAlgorithm:
             for prepared in [
                 self.prepare_check_bits(bits)
                 for bits in split_bytes_by(
-                    text_to_int(data), self.INFORMATION_BITS_COUNT
+                    self.STRING_INT_CONVERTER.text_to_int(data), self.INFORMATION_BITS_COUNT
                 )
             ]
         ]
@@ -54,7 +56,7 @@ class HemmingAlgorithm:
         :param bits_array: [int]
         :return: str
         """
-        return int_to_text(
+        return self.STRING_INT_CONVERTER.int_to_text(
             concatenate_bytes_with_base(
                 [
                     self.clear_control_bits(self.recover_corrupted_bit(obits, rbits))
