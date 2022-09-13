@@ -33,13 +33,8 @@ def main():
     # tmp = ho.clear_control_bits(tmp)
     # tmp = co.int_to_text(tmp)
     # print(tmp)
-    print(
-        bin(
-            ho.control_bits_calculation(
-                ho.prepare_check_bits(ho.clear_control_bits(0b110111011110010100001))
-            )
-        )
-    )
+    hemmig = ho.HemmingAlgorithm(16, 5)
+    hemmig.prepare_check_bits(0b1111111)
 
 
 # Press the green button in the gutter to run the script.
