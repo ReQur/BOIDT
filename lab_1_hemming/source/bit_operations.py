@@ -3,7 +3,7 @@ def split_bytes_by(bits: int, base: int) -> list[int]:
     mask = (1 << base) - 1  # 1111...1111
     while bits:
         split_bytes.append(bits & mask)
-        bits = bits >> base
+        bits >>= base
     split_bytes.reverse()
     return split_bytes
 
@@ -11,8 +11,8 @@ def split_bytes_by(bits: int, base: int) -> list[int]:
 def concatenate_bytes_with_base(bits_array: [int], base: int):
     result = 0
     for bits in bits_array:
-        result = result << base | bits
-
+        result <<= base
+        result |= bits
     return result
 
 
@@ -28,8 +28,9 @@ def create_mask(n, base) -> int:
     mask = 0
     while mask.bit_length() < base:
         for _ in range(n):
-            mask = (mask << 1) + 1
-        mask = mask << n
+            mask <<= 1
+            mask+= 1
+        mask <<= n
     return mask
 
 
@@ -41,7 +42,7 @@ def count_ones(bits: int) -> int:
     res = 0
     while bits:
         res += bits & 1
-        bits = bits >> 1
+        bits >>= 1
     return res
 
 
