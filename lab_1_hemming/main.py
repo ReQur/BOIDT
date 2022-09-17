@@ -6,35 +6,24 @@ from lab_1_hemming.source import (
 
 
 def main():
-    bin_hello = co.text_to_int("binary")
-    # norm_hello = co.int_to_text(bin_hello)
-    # print(norm_hello)
-    # print('binary')
-    # print(bin(bin_hello))
-    # # changed = bo.insert(bin_hello, 0)
-    # # print(bin(changed))
-    #
-    # split_bin_hello = bo.split_bytes_by(bin_hello, 16)
-    # # print([bin(x) for x in split_bin_hello])
-    # # conacat_bin_hello = bo.concatenate_bytes_with_base(split_bin_hello, 16)
-    # # print(co.int_to_text(conacat_bin_hello))
-    # prepared = ho.prepare_check_bits(split_bin_hello[0])
-    # # print(bin(int.from_bytes("bi".encode("ASCII"), "big")))
-    # print(bin(split_bin_hello[0]))
-    # result = ho.control_bits_calculation(prepared)
-    # print(bin(result))
-    # print([bin(x) for x in ho.encode("binary")])
-    # print(bo.count_ones(7))
-    # print(bo.remove_bit(65, 5))
-    # bi = 'aa'
-    # tmp = co.text_to_int(bi)
-    # tmp = ho.prepare_check_bits(tmp)
-    # # tmp = ho.control_bits_calculation(tmp)
-    # tmp = ho.clear_control_bits(tmp)
-    # tmp = co.int_to_text(tmp)
-    # print(tmp)
-    hemmig = ho.HemmingAlgorithm(16, 5)
-    hemmig.prepare_check_bits(0b1111111)
+    bi = "ry"
+    hemming = ho.HemmingAlgorithm(16, 5)
+    converter = co.StringIntConverter()
+    int_bi = converter.text_to_int(bi)
+    print("integer bi " + bin(int_bi))
+    prepared_bi = hemming.prepare_check_bits(int_bi)
+    #print("prepared bi " + bin(prepared_bi))
+    calculated_bi = hemming.control_bits_calculation(prepared_bi)
+    print("calculated bi " + bin(calculated_bi))
+    corrupted_bi = calculated_bi & 0b111111111111011111111
+    print("corrupted bi" + bin(corrupted_bi))
+    cleared_bi = hemming.clear_control_bits(corrupted_bi)
+    print("corrupted cleared bi " + bin(cleared_bi))
+    recalculated_bi = hemming.control_bits_calculation(hemming.prepare_check_bits(cleared_bi))
+    print("recalculated bi "+ bin(recalculated_bi))
+    recovered_bi = hemming.recover_corrupted_bit(corrupted_bi, recalculated_bi)
+    print("recovered bi " + bin(recovered_bi))
+    print(converter.int_to_text(hemming.clear_control_bits(recovered_bi)))
 
 
 # Press the green button in the gutter to run the script.

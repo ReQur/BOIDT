@@ -83,9 +83,8 @@ class HemmingAlgorithm:
         :param bits: int
         :return: int
         """
-        diff = self.INFORMATION_BITS_COUNT - bits.bit_length()
         for pos in self.POWERS_OF_TWO:
-            diff += bits == (bits := insert(bits, pos - 1 - diff))
+            bits = insert(bits, pos - 1)
         return bits
 
     def control_bits_calculation(self, bits: int) -> int:
@@ -98,32 +97,25 @@ class HemmingAlgorithm:
         """
         def len(x: int) -> int:
             return x.bit_length()
-        discarded_zeros = self.TOTAL_PIECE_LENGTH - len(bits)
-        _discarded_zeros = 0
         for (mask, pos) in zip(self.CONTROL_VALUES_MASKS, self.POWERS_OF_TWO):
             control_value = (
                 count_ones(
-                    crop_left_bits(bits, pos - 1 - _discarded_zeros)
-                    & mask >> (len(mask) - (len(bits) - (pos - 1 - _discarded_zeros)))
+                    (bits >> pos - 1)
+                    & crop_left_bits(mask, (len(mask) - len(bits >> pos - 1)))
                 )
                 % 2
             )
+            #print("bits "+bin(bits >> pos - 1))
+            #print("mask  "+bin(crop_left_bits(mask, (len(mask) - len(bits >> pos - 1)))))
             # skip insertion if the control value is 0
             if not control_value:
                 continue
-            if pos < discarded_zeros:
-                # shift control bit to the left given that
-                # we need to place zeros after control bite
-                # also shift to the len of bits for concatenation
-                control_value = control_value << discarded_zeros - pos + len(bits)
-                discarded_zeros = 0
-                _discarded_zeros = pos - 1
-            else:
-                # shift control value to required pos and concatenate
-                control_value = (
-                        control_value << (self.TOTAL_PIECE_LENGTH - (pos - 1)) - 1
-                )
+            # shift control value to required pos and concatenate
+            control_value = (
+                    control_value << pos - 1
+            )
             bits |= control_value
+            #print("control value " + bin(control_value))
         return bits
 
     def clear_control_bits(self, bits: int) -> int:
@@ -132,11 +124,8 @@ class HemmingAlgorithm:
         :param bits: int
         :return: int
         """
-        diff = self.TOTAL_PIECE_LENGTH - bits.bit_length()
-        for pos in self.POWERS_OF_TWO:
-            diff += bits.bit_length() - (
-                bits := remove_bit(bits, pos - diff)
-            ).bit_length()
+        for (pos, i) in zip(self.POWERS_OF_TWO, range(self.CONTROL_BITS_COUNT)):
+            bits = remove_bit(bits, pos - 1 - i)
         return bits
 
     def recover_corrupted_bit(self, origin_bits: int, recalculated_bits: int) -> int:
@@ -150,22 +139,28 @@ class HemmingAlgorithm:
         if origin_bits == recalculated_bits:
             return origin_bits
         control_bits_mask = 0
-        for x in range(self.TOTAL_PIECE_LENGTH + 1):
+        for x in range(self.TOTAL_PIECE_LENGTH + 1, 0, -1):
             control_bits_mask = (control_bits_mask << 1) + (x in self.POWERS_OF_TWO)
+        print(f"{bin(control_bits_mask)=}")
         diff = (origin_bits & control_bits_mask) ^ (
             recalculated_bits & control_bits_mask
         )
+        print(f"{bin(diff)=}")
         corrupted_bit = 0
         while diff:
-            corrupted_bit += self.TOTAL_PIECE_LENGTH - diff.bit_length() + 1
+            corrupted_bit += diff.bit_length()
             diff = crop_left_bits(diff, 1)
-        if origin_bits & (1 << diff):
+        print(f"{corrupted_bit=}")
+        print("!!!!")
+        print(bin(origin_bits))
+        print("           "+bin(1 << corrupted_bit - 1))
+        if origin_bits & (1 << corrupted_bit - 1):
             origin_bits &= (
-                (1 << (self.TOTAL_PIECE_LENGTH - corrupted_bit))
+                (1 << corrupted_bit - 1)
                 ^ ((1 << origin_bits.bit_length() + 1) - 1)
             )
         else:
             origin_bits |= (
-                1 << (self.TOTAL_PIECE_LENGTH - corrupted_bit)
+                1 << corrupted_bit - 1
             )
         return origin_bits

@@ -18,6 +18,7 @@ def concatenate_bytes_with_base(bits_array: [int], base: int):
 
 def insert(bits: int, bit: int) -> int:
     length = bits.bit_length()
+    bit = bits.bit_length() - bit
     if bit > length:
         raise ValueError("argument out of range")
     right = bits & ((1 << length - bit) - 1)
@@ -27,10 +28,10 @@ def insert(bits: int, bit: int) -> int:
 def create_mask(n, base) -> int:
     mask = 0
     while mask.bit_length() < base:
+        mask <<= n
         for _ in range(n):
             mask <<= 1
-            mask+= 1
-        mask <<= n
+            mask += 1
     return mask
 
 
@@ -47,6 +48,7 @@ def count_ones(bits: int) -> int:
 
 
 def remove_bit(bits: int, n: int) -> int:
+    n = bits.bit_length() - n
     if n < 0:
         return bits
     source_len = bits.bit_length()
