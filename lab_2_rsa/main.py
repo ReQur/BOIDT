@@ -1,13 +1,6 @@
+from converter import StringIntConverter
+
 P, G, SHIFT = 3163, 5869, 10
-
-
-def gcd_rem_division(num1, num2):
-    while num1 != 0 and num2 != 0:
-        if num1 >= num2:
-            num1 %= num2
-        else:
-            num2 %= num1
-    return num1 or num2
 
 
 def extended_gcd(a, b):
@@ -18,15 +11,44 @@ def extended_gcd(a, b):
         return gcd, y - (b // a) * x, x
 
 
+def get_bits(number):
+    while number:
+        yield number % 2
+        number >>= 1
+
+
 def coding(e, c, n):
     w = 1
     u = c
+    for bit in get_bits(e):
+        if bit:
+            w = (w*u) % n
+        u = (u**2) % n
+    return w
+
 
 def main():
     n = P*G
     eil_exp = (P-1)*(G-1)
-    d = 65537
-    e = [x for x in extended_gcd(d, eil_exp) if (x*d) % eil_exp == 1][0]
+    decode_key = 65537
+    encode_key = [x for x in extended_gcd(decode_key, eil_exp)
+                  if (x*decode_key) % eil_exp == 1][0]
+
+    converter = StringIntConverter()
+    encoded = converter.encode("студент хабибуллин данил дамирович")
+    print(encoded)
+
+    rsa_encoded = []
+
+    for c in encoded:
+        rsa_encoded.append(coding(encode_key, c, n))
+
+    encoded = []
+    for c in rsa_encoded:
+        encoded.append(coding(decode_key, c, n))
+
+    print(converter.decode(encoded))
+
 
 
 # Press the green button in the gutter to run the script.
