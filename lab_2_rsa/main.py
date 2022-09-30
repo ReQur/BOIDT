@@ -32,7 +32,7 @@ def main():
     eil_exp = (P-1)*(G-1)
     decode_key = 65537
     encode_key = [x for x in extended_gcd(decode_key, eil_exp)
-                  if (x*decode_key) % eil_exp == 1][0]
+                  if (x*decode_key) % eil_exp == 1 and (x*decode_key) != 1][0]
 
     converter = StringIntConverter()
     encoded = converter.encode("студент хабибуллин данил дамирович")
