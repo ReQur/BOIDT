@@ -31,6 +31,8 @@ def main():
     n = P*G
     eil_exp = (P-1)*(G-1)
     decode_key = 65537
+    # print(extended_gcd(decode_key, eil_exp))
+    # print(extended_gcd(7, 33))
     encode_key = [x for x in extended_gcd(decode_key, eil_exp)
                   if (x*decode_key) % eil_exp == 1 and abs(x*decode_key) != 1][0]
 
