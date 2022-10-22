@@ -41,3 +41,12 @@ def get_haffman_codes(node, code=''):
     if node.right:
         r = get_haffman_codes(node.right, code+'0')
     return l | r
+
+
+def build_tree(chars):
+    while len(chars) != 1:
+        l, r, *chars = chars
+        node = Node(l.freq + r.freq, l, r)
+        chars.append(node)
+        chars.sort(key=lambda x: x.freq)
+    return chars

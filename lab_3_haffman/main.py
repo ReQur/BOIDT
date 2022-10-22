@@ -1,22 +1,26 @@
-from binary_tree import Leave, Node, get_haffman_codes
+from copy import copy
 
-inpt_str = "beep boop beer!"
+from binary_tree import Leave, Node, get_haffman_codes, build_tree
 
-chars = list(set([Leave(inpt_str.count(c), c) for c in inpt_str]))
-chars.sort(key=lambda x: x.freq)
+inpt_str = "aadafagahahaajaka"
+
+freqs = list(set([Leave(inpt_str.count(c), c) for c in inpt_str]))
+freqs.sort(key=lambda x: x.freq)
+chars = copy(freqs)
 print(chars)
 
-while len(chars) != 1:
-    l, r, *chars = chars
-    node = Node(l.freq + r.freq, l, r)
-    chars.append(node)
-    chars.sort(key=lambda x: x.freq)
-
+# encode part
+chars = build_tree(chars)
 encode_map = get_haffman_codes(chars[0])
-decode_map = dict(zip(encode_map.values(), encode_map.keys()))
+print(encode_map)
 encoded = ''.join(encode_map[c] for c in inpt_str)
 print(encoded)
 
+# decode part
+chars = copy(freqs)
+chars = build_tree(chars)
+encode_map = get_haffman_codes(chars[0])
+decode_map = dict(zip(encode_map.values(), encode_map.keys()))
 word = ''
 decoded = ''
 while encoded:
