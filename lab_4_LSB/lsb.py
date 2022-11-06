@@ -1,75 +1,71 @@
 import numpy as np
 from PIL import Image
 from collections.abc import Iterable
-from converter import bit_acii_generator, merge_bits_to_ascii
+from converter import SIConverter
 
 
-width = 600
-height = 400
+class LSB:
 
-_cur = []
+    width: int
+    converter: SIConverter
 
+    def __init__(self):
+        self.converter = SIConverter()
+        self._cur = []
 
-def flatten(l):
-    global _cur
-    for el in l:
-        if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
-            yield from flatten(el)
-        else:
-            _cur = el
-            yield el
+    def flatten(self, l):
+        for el in l:
+            if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
+                yield from self.flatten(el)
+            else:
+                self._cur = el
+                yield el
 
+    def nested(self, l):
+        triplet = []
+        triples = []
+        res = []
+        for el in l:
+            triplet.append(el)
+            if len(triplet) == 3:
+                triples.append(triplet)
+                triplet = []
+                if len(triples) == self.width:
+                    res.append(triples)
+                    triples = []
 
-def nested(l):
-    triplet = []
-    triples = []
-    res = []
-    for el in l:
-        triplet.append(el)
-        if len(triplet) == 3:
-            triples.append(triplet)
-            triplet = []
-            if len(triples) == width:
-                res.append(triples)
-                triples = []
+        return res
 
-    return res
+    def encode(self, image, text):
+        res = []
+        img = np.array(Image.open(image))
+        self.width = len(image[0])
+        img_bits = self.flatten(img)
+        mes_bits = self.converter.bit_acii_generator(text)
+        for el, bit in zip(img_bits, mes_bits):
+            el >>= 1
+            el <<= 1
+            el |= bit
+            res.append(el)
 
+        res.append(self._cur)
+        for el in img_bits:
+            res.append(el)
 
-def encode(image, text):
-    res = []
-    img = np.array(Image.open(image))
-    img_bits = flatten(img)
-    mes_bits = bit_acii_generator(text)
-    for el, bit in zip(img_bits, mes_bits):
-        el >>= 1
-        el <<= 1
-        el |= bit
-        res.append(el)
+        encoded_image = self.nested(res)
+        encoded_image = np.array(encoded_image)
+        _img = Image.fromarray(encoded_image.astype(np.uint8))
+        _img.save(image[:-4]+'-encoded.bmp')
 
-    res.append(_cur)
-    for el in img_bits:
-        res.append(el)
+    def decode(self, image, text_length=0):
+        img = np.array(Image.open(image))
+        img_bits = self.flatten(img)
+        mes_bits = []
+        for el in img_bits:
+            mes_bits.append(el&1)
 
-    encoded_image = nested(res)
-    encoded_image = np.array(encoded_image)
-    _img = Image.fromarray(encoded_image.astype(np.uint8))
-    _img.save(image[:-4]+'-encoded.bmp')
+        res = self.converter.merge_bits_to_ascii(mes_bits)
+        if text_length:
+            res = res[:text_length]
 
-
-def decode(image, text_length=0):
-    img = np.array(Image.open(image))
-    img_bits = flatten(img)
-    mes_bits = []
-    for el in img_bits:
-        mes_bits.append(el&1)
-
-    res = merge_bits_to_ascii(mes_bits)
-    if text_length:
-        res = res[:text_length]
-
-    return res
-
-# _new_image = nested(list(flatten(img)))
-# _img = Image.fromarray(np.array(_new_image))
-# _img.save('./DSC_0163-copy.bmp')
+        return res
