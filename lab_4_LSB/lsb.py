@@ -9,8 +9,9 @@ class LSB:
     width: int
     converter: SIConverter
 
-    def __init__(self):
-        self.converter = SIConverter(measure=1)
+    def __init__(self, measure):
+        self.converter = SIConverter(measure=measure)
+        self.measure = measure
         self._cur = []
 
     def flatten(self, l):
@@ -39,12 +40,12 @@ class LSB:
     def encode(self, image, text):
         res = []
         img = np.array(Image.open(image))
-        self.width = len(image[0])
+        self.width = len(img[0])
         img_bits = self.flatten(img)
         mes_bits = self.converter.bit_acii_generator(text)
         for el, bit in zip(img_bits, mes_bits):
-            el >>= 1
-            el <<= 1
+            el >>= self.measure
+            el <<= self.measure
             el |= bit
             res.append(el)
 
@@ -61,8 +62,14 @@ class LSB:
         img = np.array(Image.open(image))
         img_bits = self.flatten(img)
         mes_bits = []
+        tmp = []
         for el in img_bits:
-            mes_bits.append(el&1)
+            for i in range(self.measure):
+                tmp.append(el&1)
+                el >>= 1
+            tmp.reverse()
+            mes_bits += tmp
+            tmp = []
 
         res = self.converter.merge_bits_to_ascii(mes_bits)
         if text_length:

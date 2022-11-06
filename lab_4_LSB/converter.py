@@ -36,7 +36,7 @@ class SIConverter:
         bits.reverse()
         res = ''
         while bits:
-            char, bits = bits[-8//self.measure:], bits[:-8//self.measure]
+            char, bits = bits[-8:], bits[:-8]
             try:
                 res += self.int_to_text(int(''.join([str(b) for b in char]), 2))
             except:
