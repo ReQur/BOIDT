@@ -35,10 +35,19 @@ class SIConverter:
     def merge_bits_to_ascii(self, bits: list):
         bits.reverse()
         res = ''
+        img_length = len(bits)
+        _percent = 0
+        prev_percent = -1
+        process_counter = 0
         while bits:
             char, bits = bits[-8:], bits[:-8]
             try:
                 res += self.int_to_text(int(''.join([str(b) for b in char]), 2))
+                process_counter += 1
+                _percent = int((process_counter / img_length) * 100)
+                if _percent != prev_percent:
+                    print('text is {}% prepared'.format(_percent))
+                    prev_percent = _percent
             except:
                 break
         return res

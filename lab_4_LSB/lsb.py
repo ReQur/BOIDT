@@ -38,6 +38,10 @@ class LSB:
         return res
 
     def encode(self, image, text):
+        with open(text) as txt:
+            message_length = len(txt.read())
+        percent_counter = 0
+        prev_percent = -1
         res = []
         img = np.array(Image.open(image))
         self.width = len(img[0])
@@ -48,6 +52,12 @@ class LSB:
             el <<= self.measure
             el |= bit
             res.append(el)
+
+            percent_counter +=1
+            _percent = int((percent_counter/(message_length*8/self.measure))*100)
+            if _percent != prev_percent:
+                print('message is {}% encoded'.format(_percent))
+                prev_percent = _percent
 
         res.append(self._cur)
         for el in img_bits:
@@ -61,6 +71,10 @@ class LSB:
     def decode(self, image, text_length=0):
         img = np.array(Image.open(image))
         img_bits = self.flatten(img)
+        img_length = len(img[0])*len(img)*3
+        _percent = 0
+        prev_percent = -1
+        process_counter = 0
         mes_bits = []
         tmp = []
         for el in img_bits:
@@ -70,6 +84,13 @@ class LSB:
             tmp.reverse()
             mes_bits += tmp
             tmp = []
+
+            process_counter += 1
+            _percent = int((process_counter / img_length) * 100)
+            if _percent != prev_percent:
+                print('picture is {}% decoded'.format(_percent))
+                prev_percent = _percent
+
 
         res = self.converter.merge_bits_to_ascii(mes_bits)
         if text_length:
