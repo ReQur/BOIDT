@@ -10,7 +10,7 @@ class LSB:
     converter: SIConverter
 
     def __init__(self):
-        self.converter = SIConverter()
+        self.converter = SIConverter(measure=1)
         self._cur = []
 
     def flatten(self, l):

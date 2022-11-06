@@ -5,11 +5,25 @@ class SIConverter:
     ENCODING: str
     BYTE_ORDER: str
 
-    def __init__(self, encoding="ASCII", byte_orded="big"):
+    def __init__(self, measure, encoding="ASCII", byte_orded="big"):
         self.ENCODING = encoding
         self.BYTE_ORDER = byte_orded
+        self.measure = measure
 
     def bit_acii_generator(self, text_file: str):
+        _gen = self._bit_acii_generator(text_file)
+        while True:
+            tmp = 0
+            try:
+                for i in range(self.measure):
+                    tmp <<= 1
+                    tmp |= next(_gen)
+            except StopIteration:
+                break
+            else:
+                yield tmp
+
+    def _bit_acii_generator(self, text_file: str):
         with open(text_file, 'r') as file:
             text = file.read()
             for c in text:
@@ -18,6 +32,17 @@ class SIConverter:
                     yield num & 0b1
                     num >>= 1
 
+    def merge_bits_to_ascii(self, bits: list):
+        bits.reverse()
+        res = ''
+        while bits:
+            char, bits = bits[-8//self.measure:], bits[:-8//self.measure]
+            try:
+                res += self.int_to_text(int(''.join([str(b) for b in char]), 2))
+            except:
+                break
+        return res
+
     def int_to_text(self, bits: int) -> str:
         return self._int_to_bytes(bits).decode(self.ENCODING)
 
@@ -25,14 +50,3 @@ class SIConverter:
         hex_string = "%x" % i
         n = len(hex_string)
         return binascii.unhexlify(hex_string.zfill(n + (n & 1)))
-
-    def merge_bits_to_ascii(self, bits: list):
-        bits.reverse()
-        res = ''
-        while bits:
-            char, bits = bits[-8:], bits[:-8]
-            try:
-                res += self.int_to_text(int(''.join([str(b) for b in char]), 2))
-            except:
-                break
-        return res
