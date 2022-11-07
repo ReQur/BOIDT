@@ -55,7 +55,7 @@ class LSB:
 
             percent_counter +=1
             _percent = int((percent_counter/(message_length*8/self.measure))*100)
-            if _percent != prev_percent:
+            if _percent != prev_percent and _percent % 5 == 0:
                 print('message is {}% encoded'.format(_percent))
                 prev_percent = _percent
 
@@ -87,7 +87,7 @@ class LSB:
 
             process_counter += 1
             _percent = int((process_counter / img_length) * 100)
-            if _percent != prev_percent:
+            if _percent != prev_percent and _percent % 5 == 0:
                 print('picture is {}% decoded'.format(_percent))
                 prev_percent = _percent
 
