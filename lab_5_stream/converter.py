@@ -9,14 +9,12 @@ class SIConverter:
         self.ENCODING = encoding
         self.BYTE_ORDER = byte_orded
 
-    def bit_acii_generator(self, text_file: str):
-        with open(text_file, 'r') as file:
-            text = file.read()
-            for c in text:
-                num = int.from_bytes(c.encode(self.ENCODING), self.BYTE_ORDER)
-                for i in range(8):
-                    yield num & 0b1
-                    num >>= 1
+    def bit_acii_generator(self, text: str):
+        for c in text:
+            num = int.from_bytes(c.encode(self.ENCODING), self.BYTE_ORDER)
+            for i in range(8):
+                yield num & 0b1
+                num >>= 1
 
     def merge_bits_to_ascii(self, bits: list):
         res = ''
