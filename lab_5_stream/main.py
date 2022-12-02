@@ -7,6 +7,25 @@ SEED = 1100
 
 BUFFER = []
 
+
+def check_cycling():
+    rnd = md(SEED)
+    c = 0
+    buf = []
+    for k in rnd:
+        buf.append(k)
+        if c > 15:
+            if len(buf) % 2 == 1:
+                continue
+            for i, j in zip(buf[0:len(buf) // 2], buf[len(buf) // 2:-1]):
+                if i != j:
+                    break
+            else:
+                print("Cycling found")
+                break
+        c += 1
+
+
 conv = SIConverter()
 
 
